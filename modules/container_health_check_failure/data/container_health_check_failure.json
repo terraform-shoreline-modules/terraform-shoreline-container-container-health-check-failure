@@ -1,0 +1,162 @@
+{
+  "name": "container_health_check_failure",
+  "description": "This incident type refers to a failure in the health check process of a container, which is a lightweight, standalone executable package that contains everything needed to run an application, including the code, libraries, and dependencies. The health check process is a mechanism that allows a container to self-assess its own state and inform the container orchestration platform whether it is ready to receive traffic or not. A failure in this process can cause the container to be marked as unhealthy and potentially disrupt the overall application performance.",
+  "params": [
+    {
+      "name": "EXPECTED_STATUS_CODE",
+      "value": ""
+    },
+    {
+      "name": "CPU_THRESHOLD",
+      "value": ""
+    },
+    {
+      "name": "CONTAINER_NAME",
+      "value": ""
+    },
+    {
+      "name": "HEALTH_CHECK_ENDPOINT",
+      "value": ""
+    },
+    {
+      "name": "MEM_THRESHOLD",
+      "value": ""
+    },
+    {
+      "name": "CONTAINER_ID",
+      "value": ""
+    },
+    {
+      "name": "IO_THRESHOLD",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Container Health Check Failure.\nThis incident type refers to a failure in the health check process of a container, which is a lightweight, standalone executable package that contains everything needed to run an application, including the code, libraries, and dependencies. The health check process is a mechanism that allows a container to self-assess its own state and inform the container orchestration platform whether it is ready to receive traffic or not. A failure in this process can cause the container to be marked as unhealthy and potentially disrupt the overall application performance."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 1: Check the status of the container"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `docker ps -a`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 2: Check the logs of the container"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `docker logs ${CONTAINER_ID}`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 3: Check the health status of the container"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `docker inspect --format='{{json .State.Health}}' ${CONTAINER_ID}`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 4: Check the health check configuration of the container"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `docker inspect --format='{{json .Config.Healthcheck}}' ${CONTAINER_ID}`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 5: Check the network connections of the container"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `docker exec -it ${CONTAINER_ID} netstat -an`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 6: Check the resource usage of the container"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `docker stats ${CONTAINER_ID}`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the container is running and the health check is enabled."
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_check_container_health($CONTAINER_NAME)"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the health check endpoint is returning the expected response status code."
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_health_check_restart_container($EXPECTED_STATUS_CODE, $CONTAINER_NAME, $HEALTH_CHECK_ENDPOINT)"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the container is running out of resources like CPU, memory, or I/O, causing the health check to fail."
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_container_resource_check($CPU_THRESHOLD, $CONTAINER_NAME, $MEM_THRESHOLD, $IO_THRESHOLD)"
+    }
+  ]
+}
